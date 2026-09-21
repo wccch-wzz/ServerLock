@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "LGPL-3.0-only"
+issueTrackerURL = "https://github.com/wccch-wzz/ServerLock/issues"
+
+[[mods]]
+modId = "serverlock"
+version = "${version}"
+displayName = "ServerLock"
+authors = "ServerLock"
+description = '''
+锁定客户端服务器列表：移除单人游戏与添加/编辑服务器入口，只保留指定服务器。
+'''
+logoFile = "serverlock.png"
+
+[[dependencies.serverlock]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge_version},)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.serverlock]]
+modId = "minecraft"
+type = "required"
+versionRange = "[${minecraft_version},1.22)"
+ordering = "NONE"
+side = "CLIENT"

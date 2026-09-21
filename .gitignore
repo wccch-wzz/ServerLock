@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.eclipse/
+.settings/
+.classpath
+.project
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# Java
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# ModDevGradle / Loom 运行目录
+run/
+runs/
+icon_128.png
+icon_32.png

@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+    id 'net.neoforged.moddev' version "${moddev_version}"
+}
+
+version = "${mod_version}+mc${minecraft_version}"
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
+    maven { name = 'AliyunCentral'; url = 'https://maven.aliyun.com/repository/central' }
+    maven { name = 'TencentMirror'; url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+    mavenCentral()
+}
+
+neoForge {
+    // 指定 NeoForge 版本（对应 MC 1.21.1）
+    version = project.neoforge_version
+
+    // 使用官方 Mojang mappings
+    // 这样做的好处：源码里的类名/方法名与 Fabric 侧保持一致，两端的业务逻辑
+    // 可以直接对照阅读，不需要在脑子里做官方名→SRG 名的转换。
+    // 代价是运行时需要通过 NeoForge 的 runtime 映射层，这是它的标准能力，无额外成本。
+    parchment {
+        // 不使用 Parchment 参数名增强，避免引入额外下载源
+    }
+
+    runs {
+        client {
+            client()
+        }
+    }
+
+    mods {
+        serverlock {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = project.java_version as int
+    it.options.encoding = "UTF-8"
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.toVersion(project.java_version)
+    targetCompatibility = JavaVersion.toVersion(project.java_version)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(project.java_version as int)
+    }
+}
+
+// 用属性替换把版本号写进 neoforge.mods.toml
+tasks.named('processResources', ProcessResources) {
+    inputs.property "version", project.version
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version,
+               "minecraft_version": project.minecraft_version,
+               "neoforge_version": project.neoforge_version
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : "ServerLock",
+                "Specification-Vendor"    : "ServerLock",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : "ServerLock",
+                "Implementation-Version"  : project.version,
+                "Implementation-Vendor"   : "ServerLock",
+        ])
+    }
+}

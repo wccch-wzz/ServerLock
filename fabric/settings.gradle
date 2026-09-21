@@ -1,0 +1,13 @@
+pluginManagement {
+    repositories {
+        // 国内镜像优先，失败再回源
+        maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
+        maven { name = 'AliyunCentral'; url = 'https://maven.aliyun.com/repository/central' }
+        maven { name = 'TencentMirror'; url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'serverlock-fabric'

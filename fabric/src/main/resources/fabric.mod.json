@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "serverlock",
+  "version": "${version}",
+  "name": "ServerLock",
+  "description": "锁定客户端服务器列表：移除单人游戏与添加/编辑服务器入口，只保留指定服务器。",
+  "authors": [
+    "ServerLock"
+  ],
+  "contact": {
+    "homepage": "https://github.com/wccch-wzz/ServerLock",
+    "sources": "https://github.com/wccch-wzz/ServerLock",
+    "issues": "https://github.com/wccch-wzz/ServerLock/issues"
+  },
+  "license": "LGPL-3.0-only",
+  "icon": "assets/serverlock/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.serverlock.fabric.ServerLockFabric"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "serverlock.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21"
+  }
+}

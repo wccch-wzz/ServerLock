@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.serverlock.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "ScreenAccessor",
+    "TitleScreenMixin",
+    "JoinMultiplayerScreenMixin",
+    "ServerListAccessor",
+    "ServerListMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

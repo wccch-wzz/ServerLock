@@ -1,0 +1,60 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = "${mod_version}+mc${minecraft_version}"
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
+    maven { name = 'AliyunCentral'; url = 'https://maven.aliyun.com/repository/central' }
+    maven { name = 'TencentMirror'; url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+    maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // 1.21.11 官方 mappings；若解析失败 Loom 会回退，见 README
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API：只用客户端生命周期事件入口。
+    // 不引入它时要自己写 Mixin 去 hook 客户端初始化，成本更高且更脆；
+    // 而 Fabric API 是所有 Fabric 整合包的标准依赖，不存在额外分发负担。
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version,
+               "minecraft_version": project.minecraft_version,
+               "loader_version": project.loader_version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = project.java_version as int
+    it.options.encoding = "UTF-8"
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.toVersion(project.java_version)
+    targetCompatibility = JavaVersion.toVersion(project.java_version)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(project.java_version as int)
+    }
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}

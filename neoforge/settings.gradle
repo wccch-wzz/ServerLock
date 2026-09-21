@@ -1,0 +1,16 @@
+pluginManagement {
+    repositories {
+        // 关键：ModDevGradle 依赖 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:1.2，
+        // 而 plugins.gradle.org / repo.maven.apache.org 在本环境 TLS 握手失败。
+        // 阿里云 gradle-plugin 仓库有该构件的完整代理，置首以优先命中。
+        maven { name = 'AliyunGradlePlugin'; url = 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
+        maven { name = 'AliyunCentral'; url = 'https://maven.aliyun.com/repository/central' }
+        maven { name = 'TencentMirror'; url = 'https://mirrors.cloud.tencent.com/nexus/repository/maven-public/' }
+        maven { name = 'NeoForged'; url = 'https://maven.neoforged.net/releases' }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'serverlock-neoforge'
