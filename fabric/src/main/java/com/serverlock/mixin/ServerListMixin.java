@@ -76,15 +76,19 @@ public abstract class ServerListMixin {
     /**
      * 阻止 {@code saveSingleServer} 这条单条写入路径写出非法数据。
      *
-     * <p>{@code saveSingleServer} 用于 ping 完成后回写服务器信息（如 MOTD、图标），
-     * 它会直接改写文件里对应条目。这里校验地址，非白名单则整体纠正后放弃该次写入。
+     * <p>MC 26.2 起 {@code saveSingleServer} 被重构为 <b>static</b> 方法，
+     * 不再挂载在 {@code ServerList} 实例上。Mixin 规定：目标是静态方法时，
+     * 回调也必须是 static（非静态回调会抛
+     * {@code InvalidInjectionException: non-static callback ... targets a static method}）。
+     *
+     * <p>代价是拿不到 {@code this}，无法在此处调用 {@code enforce(self)} /
+     * {@code self.save()}。因此改为「拒绝非法写入」策略：只要地址不在白名单内
+     * 就直接取消本次写入，磁盘上的条目交由 {@code load()} 的 TAIL 注入点纠正。
+     * 对于白名单内的地址，写入正常放行（只更新 MOTD / 图标，不影响地址合法性）。
      */
     @Inject(method = "saveSingleServer", at = @At("HEAD"), cancellable = true)
-    private void serverlock$guardSingleServer(ServerData data, CallbackInfo ci) {
+    private static void serverlock$guardSingleServer(ServerData data, CallbackInfo ci) {
         if (data == null || !ServerLockRules.isAllowedAddress(data.ip)) {
-            ServerList self = (ServerList) (Object) this;
-            ServerLockEnforcer.enforce(self);
-            self.save();
             ci.cancel();
         }
     }
