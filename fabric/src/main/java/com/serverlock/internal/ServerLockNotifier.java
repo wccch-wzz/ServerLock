@@ -30,6 +30,12 @@ public final class ServerLockNotifier {
             return;
         }
         try {
+            // gui 在极早期的 tick 里可能尚未初始化，直接取字段会比对外可见的
+            // toastManager 更早暴露 NPE，这里显式挡一道。
+            if (minecraft.gui == null) {
+                return;
+            }
+
             int count = ServerLockRules.requiredServers().size();
             Component title = Component.literal("ServerLock");
             Component body = Component.literal("服务器列表已被重置为指定的 " + count + " 个服务器");
