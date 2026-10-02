@@ -36,7 +36,12 @@ public final class ServerLockNotifier {
 
             SystemToast toast = new SystemToast(
                     SystemToast.SystemToastId.PERIODIC_NOTIFICATION, title, body);
-            minecraft.getToastManager().addToast(toast);
+            // 26.2 起 ToastManager 从 Minecraft 移到了 Gui：
+            //   旧: minecraft.getToastManager()
+            //   新: minecraft.gui.toastManager()
+            // （Minecraft.gui 是 public 字段，Gui.toastManager() 是 getter；
+            //   Minecraft 里已无任何 ToastManager 字段与 getter。）
+            minecraft.gui.toastManager().addToast(toast);
         } catch (Throwable ignored) {
             // 提示失败不影响锁定效果
         }

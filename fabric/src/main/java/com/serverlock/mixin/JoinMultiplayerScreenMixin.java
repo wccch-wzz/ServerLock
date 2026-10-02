@@ -29,7 +29,7 @@ import java.util.List;
  * 启动器改写，仅靠启动时纠正不足以覆盖「游戏运行中被改」的情况。每次打开这个界面都对齐一次，
  * 是成本最低的兜底。
  */
-@Mixin(JoinMultiplayerScreen.class)
+@Mixin(value = JoinMultiplayerScreen.class, remap = false)
 public abstract class JoinMultiplayerScreenMixin {
 
     @Shadow

@@ -1,5 +1,7 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    // 26.2 官方模板用的是新插件 ID net.fabricmc.fabric-loom（旧的 'fabric-loom' 是
+    // 需要 mappings 的旧路径，在无混淆版本上会报 "Configuration 'mappings' has no dependencies"）。
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
 }
 
@@ -20,14 +22,20 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    // 1.21.11 官方 mappings；若解析失败 Loom 会回退，见 README
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // 26.1 起 Minecraft 不再混淆（Fabric 官方 Wiki：混淆止于 1.21.11）。
+    // 官方 26.2 模板（fabric-example-mod 26.2 分支）里【没有】mappings 那行，
+    // 依赖也从 modImplementation 换成 implementation —— 因为没有 remap 这回事了。
+    // 之前用 modImplementation 会走 remap 路径并要求 mappings 配置非空：
+    //   保留 mappings 行 → "Failed to find official mojang mappings for 26.2"
+    //   删掉 mappings 行   → "Configuration 'mappings' has no dependencies"
+    // 只有按官方模板用 implementation 才不碰 remap。
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     // Fabric API：只用客户端生命周期事件入口。
     // 不引入它时要自己写 Mixin 去 hook 客户端初始化，成本更高且更脆；
     // 而 Fabric API 是所有 Fabric 整合包的标准依赖，不存在额外分发负担。
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
 processResources {

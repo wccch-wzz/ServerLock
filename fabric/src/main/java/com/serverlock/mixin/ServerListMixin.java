@@ -23,7 +23,7 @@ import java.util.List;
  * <p>注入点都在方法 HEAD（读之前先补齐、写之前先纠正），保证无论调用方是谁，
  * 看到的和落盘的都是同一份合规数据。
  */
-@Mixin(ServerList.class)
+@Mixin(value = ServerList.class, remap = false)
 public abstract class ServerListMixin {
 
     /**

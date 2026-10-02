@@ -17,7 +17,7 @@ import java.util.List;
  * <p>用法：{@code ServerListAccessor acc = (ServerListAccessor) (Object) serverList;}
  * 然后调用无参方法。注意 accessor 方法必须是实例方法且无参数 —— 这是 Mixin 的约定。
  */
-@Mixin(ServerList.class)
+@Mixin(value = ServerList.class, remap = false)
 public interface ServerListAccessor {
 
     /** 在线服务器列表（即 servers.dat 的内容）。 */

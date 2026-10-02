@@ -17,7 +17,7 @@ import java.util.List;
  * <p>{@code children} / {@code narratables} 同理由访问器提供：修改控件时必须三者同步，
  * 否则会出现「按钮看不见但仍响应点击」或「按钮没渲染但有旁白」这类半失效状态。
  */
-@Mixin(Screen.class)
+@Mixin(value = Screen.class, remap = false)
 public interface ScreenAccessor {
 
     /** 渲染列表，等价于屏幕上看得到的控件集合。 */

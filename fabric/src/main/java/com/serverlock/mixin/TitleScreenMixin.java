@@ -26,7 +26,7 @@ import java.util.List;
  *
  * <p>识别方式：优先用翻译键 {@code menu.singleplayer}（与语言无关），兜底用本地化文字。
  */
-@Mixin(TitleScreen.class)
+@Mixin(value = TitleScreen.class, remap = false)
 public abstract class TitleScreenMixin {
 
     @Inject(method = "init", at = @At("TAIL"))
