@@ -1,9 +1,14 @@
 package com.serverlock.mixin;
 
+import com.serverlock.internal.ServerListAccessor;
+import com.serverlock.internal.ServerLockEnforcer;
 import com.serverlock.fabric.ServerLockRules;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,7 +29,41 @@ import java.util.List;
  * 看到的和落盘的都是同一份合规数据。
  */
 @Mixin(value = ServerList.class, remap = false)
-public abstract class ServerListMixin {
+public abstract class ServerListMixin implements ServerListAccessor {
+
+    /**
+     * {@code ServerList.serverList} 私有字段接入。
+     *
+     * <p>用 {@link Shadow}（而非独立的 {@code @Accessor} 接口）实现
+     * {@link ServerListAccessor}：本类已经是 {@code ServerList} 的 mixin，
+     * 直接 shadow 字段即可，无需再引入一个被 Mixin 接管的接口。
+     * 这同时规避了「普通类引用 mixin 包内类」的限制——
+     * {@link ServerLockEnforcer} 等业务类只依赖 {@code internal} 包里的纯接口。
+     */
+    @Shadow
+    @Mutable
+    @Final
+    private List<ServerData> serverList;
+
+    /** 被隐藏的服务器列表，同样需要清空以免绕过限制。 */
+    @Shadow
+    @Final
+    private List<ServerData> hiddenServerList;
+
+    @Override
+    public List<ServerData> serverlock$getServerList() {
+        return this.serverList;
+    }
+
+    @Override
+    public void serverlock$setServerList(List<ServerData> list) {
+        this.serverList = list;
+    }
+
+    @Override
+    public List<ServerData> serverlock$getHiddenServerList() {
+        return this.hiddenServerList;
+    }
 
     /**
      * 在 {@code load()} 读取文件之前，先确保目标条目存在。
@@ -49,16 +88,24 @@ public abstract class ServerListMixin {
      * 在 {@code load()} 读取完文件之后纠正内存列表。
      *
      * <p>此时列表已完全由 servers.dat 内容填充，是纠正的最佳时机。
-     * 若发生纠正，立即回写文件，让磁盘与内存保持一致 —— 否则玩家关掉游戏后
-     * 下一次启动仍会看到被篡改的内容。
+     *
+     * <p><b>为什么不在这里调 {@code save()}（性能考量）：</b>
+     * {@code load()} 只在打开多人游戏界面或客户端启动时调用，是玩家可感知的路径；
+     * 而 {@code save()} 是同步文件 I/O。若这里直接回写，每次打开界面都会阻塞一次写盘，
+     * 表现为「点进多人游戏要卡一下」。
+     * <p>落盘改由两处惰性完成，二者都不在打开界面的关键路径上：
+     * <ul>
+     *   <li>{@code ServerLockFabric} 的首次 tick 纠正后会 save 一次（启动期，无感）；</li>
+     *   <li>{@code save()} 自身的 HEAD 注入会在任何写入路径上先把内存纠正为合规内容。</li>
+     * </ul>
+     * <p>界面展示只依赖内存列表，此处纠正内存即可让玩家看到正确的两个服务器，
+     * 无需伴随写盘。
      */
     @Inject(method = "load", at = @At("TAIL"))
     private void serverlock$afterLoad(CallbackInfo ci) {
         ServerList self = (ServerList) (Object) this;
-        if (ServerLockEnforcer.enforce(self)) {
-            // 磁盘内容非法 → 立刻写回合规版本
-            self.save();
-        }
+        // 只纠正内存，不触发写盘（写盘时机见上方说明）
+        ServerLockEnforcer.enforce(self);
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.serverlock.mixin;
+package com.serverlock.internal;
 
 import com.serverlock.fabric.ServerLockRules;
 import net.minecraft.client.multiplayer.ServerData;
@@ -16,8 +16,10 @@ import java.util.List;
  * 然后补齐缺失的必需条目。这个做法是幂等的 —— 对一个已经合规的列表调用不会产生改动，
  * 因此可以放心地在每次打开界面时执行。
  *
- * <p>注意：{@code ServerList#serverList} 是私有字段，这里通过 Mixin 访问器
- * （{@link ServerListAccessor}）读写，避免反射带来的性能与兼容性开销。
+ * <p>注意：{@code ServerList#serverList} 是私有字段，这里通过
+ * {@link ServerListAccessor} 读写。该接口本身是<b>纯 Java 接口</b>
+ * （不含 Mixin 注解），由 {@code ServerListMixin} 用 {@code @Shadow} 实现，
+ * 因此本包对 Mixin 无任何依赖。
  */
 public final class ServerLockEnforcer {
 
@@ -31,10 +33,19 @@ public final class ServerLockEnforcer {
      * @return 是否发生了改动（调用方据此决定是否 save 与提示）
      */
     public static boolean enforce(ServerList list) {
-        List<ServerData> existing =
-                ((ServerListAccessor) (Object) list).serverlock$getServerList();
-        if (existing == null) {
+        if (list == null) {
             return false;
+        }
+
+        ServerListAccessor accessor = (ServerListAccessor) (Object) list;
+        List<ServerData> existing = accessor.serverlock$getServerList();
+
+        // 字段为 null 的情况：类初始化未执行完（Mixin 应用失败、或构造被异常中断）。
+        // 此时不能直接 return false —— 那会让列表永远空下去，玩家看到“多人游戏内没有服务器”。
+        // 这里主动补一个空列表进去，再走下面的补齐逻辑。
+        if (existing == null) {
+            existing = new java.util.ArrayList<>();
+            accessor.serverlock$setServerList(existing);
         }
 
         boolean changed = false;

@@ -1,7 +1,7 @@
 package com.serverlock.fabric;
 
-import com.serverlock.mixin.ServerLockEnforcer;
-import com.serverlock.mixin.ServerLockNotifier;
+import com.serverlock.internal.ServerLockNotifier;
+import com.serverlock.internal.ServerLockEnforcer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
@@ -41,8 +41,17 @@ public class ServerLockFabric implements ClientModInitializer {
         }
 
         try {
-            // ServerList 构造时会自行 load()，Mixin 在 load 的 TAIL 完成纠正并回写
+            // MC 26.2 起 ServerList 的构造函数只初始化字段，不再自动 load()。
+            // （已通过字节码确认：<init> 中只有 Lists.newArrayList 赋值 +
+            //   minecraft 字段赋值，无 load 调用。1.21.x 及更早是构造即 load。）
+            // 因此这里必须显式 load()，否则拿到的是两个空列表，
+            // enforce() 补进去的条目只存在于内存，且随对象一起被丢弃。
             ServerList list = new ServerList(minecraft);
+
+            // 先读盘，把 servers.dat 的现有内容加载到内存
+            list.load();
+
+            // 再把内存列表纠正为「恰好两个白名单服务器」
             if (ServerLockEnforcer.enforce(list)) {
                 list.save();
                 ServerLockNotifier.notifyCorrected(minecraft);

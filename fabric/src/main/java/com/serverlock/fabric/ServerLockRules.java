@@ -97,6 +97,14 @@ public final class ServerLockRules {
                 || s.equals("Добавить сервер");
     }
 
+    /**
+     * “禁用”红叉的颜色（ARGB）。
+     *
+     * <p>取值 {@code 0xFFFF3B30}：iOS 系统红，在灰态按钮上对比度足够，
+     * 又不至于像纯红 {@code 0xFFFF0000} 那样刺眼。
+     */
+    public static final int CROSS_COLOR = 0xFFFF3B30;
+
 
     /**
      * 生成标准的两个服务器条目（名称 + 地址），顺序固定：主服务器在前。

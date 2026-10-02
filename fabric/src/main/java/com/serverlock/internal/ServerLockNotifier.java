@@ -1,4 +1,4 @@
-package com.serverlock.mixin;
+package com.serverlock.internal;
 
 import com.serverlock.fabric.ServerLockRules;
 import net.minecraft.client.Minecraft;
